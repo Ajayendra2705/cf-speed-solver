@@ -35,9 +35,9 @@ const ProfilePage = () => {
   const [error, setError] = useState(null);
   const [totalContests, setTotalContests] = useState(0);
   const [totalSubmissions, setTotalSubmissions] = useState(0);
-  const [totalAccepted, setTotalAccepted] = useState(0); // Added total accepted solutions
+  const [totalAccepted, setTotalAccepted] = useState(0);
 
-  const handle = localStorage.getItem("cfHandle"); // Getting handle from localStorage
+  const handle = localStorage.getItem("cfHandle");
 
   useEffect(() => {
     if (handle) {
@@ -55,7 +55,7 @@ const ProfilePage = () => {
       );
       if (response.data.status === "OK") {
         setUserInfo(response.data.result[0]);
-        setError(null); // Reset any errors if the data is fetched successfully
+        setError(null);
       } else {
         setError("❌ Could not fetch user data. Please check the handle.");
       }
@@ -71,7 +71,7 @@ const ProfilePage = () => {
       );
       if (response.data.status === "OK") {
         setContestHistory(response.data.result);
-        setTotalContests(response.data.result.length); // Count contests
+        setTotalContests(response.data.result.length);
         setError(null);
       } else {
         setError("❌ Could not fetch contest history.");
@@ -89,11 +89,11 @@ const ProfilePage = () => {
       if (response.data.status === "OK") {
         const submissions = response.data.result;
         const solvedByRating = {};
-        let acceptedCount = 0; // Counter for total accepted solutions
+        let acceptedCount = 0;
 
         submissions.forEach((submission) => {
           if (submission.verdict === "OK") {
-            acceptedCount++; // Increment accepted solutions count
+            acceptedCount++;
             const problemRating = submission.problem.rating;
             if (problemRating) {
               solvedByRating[problemRating] = (solvedByRating[problemRating] || 0) + 1;
@@ -102,8 +102,8 @@ const ProfilePage = () => {
         });
 
         setSolvedQuestionsByRating(solvedByRating);
-        setTotalSubmissions(submissions.length); // Count submissions
-        setTotalAccepted(acceptedCount); // Set total accepted solutions
+        setTotalSubmissions(submissions.length);
+        setTotalAccepted(acceptedCount);
       }
     } catch (err) {
       setError("❌ An error occurred while fetching the solved questions data.");
@@ -121,7 +121,7 @@ const ProfilePage = () => {
 
         submissions.forEach((submission) => {
           if (submission.verdict === "OK") {
-            const topic = submission.problem.tags[0]; // Assuming the first tag is the topic
+            const topic = submission.problem.tags[0];
             if (topic) {
               topics[topic] = (topics[topic] || 0) + 1;
             }
@@ -135,29 +135,39 @@ const ProfilePage = () => {
     }
   };
 
+  // Modern 2025 color palette (purple, blue, green, yellow, red, clay, etc.)
+  const chartColors = [
+    "#844fc1", "#3b86d1", "#21bf06", "#ffc93c", "#bf1922",
+    "#c99383", "#b17a50", "#00cfc8", "#facf39", "#112d4e"
+  ];
+
   const ratingHistoryData = {
-    labels: contestHistory.map((contest) => new Date(contest.ratingUpdateTimeSeconds * 1000).toLocaleDateString()),
+    labels: contestHistory.map((contest) =>
+      new Date(contest.ratingUpdateTimeSeconds * 1000).toLocaleDateString()
+    ),
     datasets: [
       {
         label: "Rating",
         data: contestHistory.map((contest) => contest.newRating),
-        borderColor: "rgba(75, 192, 192, 1)", // Blue color for line
-        backgroundColor: "rgba(75, 192, 192, 0.2)", // Light blue background for the chart
+        borderColor: "#3b86d1",
+        backgroundColor: "rgba(132, 79, 193, 0.10)",
         tension: 0.4,
-        fill: true,  // Filling area below the line
+        fill: true,
+        pointBackgroundColor: "#844fc1",
+        pointBorderColor: "#3b86d1",
       },
     ],
   };
-  
-  
 
   const solvedByRatingData = {
-    labels: Object.keys(solvedQuestionsByRating).filter((rating) => solvedQuestionsByRating[rating] > 0),
+    labels: Object.keys(solvedQuestionsByRating).filter(
+      (rating) => solvedQuestionsByRating[rating] > 0
+    ),
     datasets: [
       {
         label: "Solved Problems",
         data: Object.values(solvedQuestionsByRating).filter((count) => count > 0),
-        backgroundColor: "rgba(54, 162, 235, 0.6)",
+        backgroundColor: chartColors,
       },
     ],
   };
@@ -168,13 +178,7 @@ const ProfilePage = () => {
       {
         label: "Solved Topics",
         data: Object.values(topicsSolved),
-        backgroundColor: [
-          "rgba(255, 99, 132, 0.6)",
-          "rgba(54, 162, 235, 0.6)",
-          "rgba(255, 206, 86, 0.6)",
-          "rgba(75, 192, 192, 0.6)",
-          "rgba(153, 102, 255, 0.6)",
-        ],
+        backgroundColor: chartColors,
       },
     ],
   };
@@ -184,19 +188,37 @@ const ProfilePage = () => {
     datasets: [
       {
         data: [
-          totalAccepted, // Use the totalAccepted count here
-          30, // Replace with actual verdict counts
+          totalAccepted,
+          30,
           10,
-          5
+          5,
         ],
         backgroundColor: [
-          "rgba(75, 192, 192, 0.6)",
-          "rgba(255, 99, 132, 0.6)",
-          "rgba(255, 206, 86, 0.6)",
-          "rgba(153, 102, 255, 0.6)",
+          "#21bf06", "#bf1922", "#ffc93c", "#3b86d1"
         ],
       },
     ],
+  };
+
+  // Chart.js options with aspect ratios and modern color
+  const lineBarOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 2,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: "#e5e7eb" }, ticks: { color: "#6c7293" } },
+      y: { grid: { color: "#e5e7eb" }, ticks: { color: "#6c7293" } }
+    }
+  };
+
+  const pieDoughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 1.2,
+    plugins: {
+      legend: { position: "bottom", labels: { color: "#374151", font: { size: 15 } } }
+    }
   };
 
   return (
@@ -221,39 +243,36 @@ const ProfilePage = () => {
       </div>
 
       <div className="metrics">
-        <div className="metric-card">
+        <div className="metric-card metric-accent1">
           <h3>Total Contests</h3>
           <p>{totalContests}</p>
         </div>
-        <div className="metric-card">
+        <div className="metric-card metric-accent2">
           <h3>Total Submissions</h3>
           <p>{totalSubmissions}</p>
         </div>
-        <div className="metric-card">
+        <div className="metric-card metric-accent3">
           <h3>Total Accepted Solutions</h3>
           <p>{totalAccepted}</p>
         </div>
       </div>
 
       <div className="charts">
-        <div className="chart-container">
+        <div className="chart-container chart-wide">
           <h2>Rating History</h2>
-          <Line data={ratingHistoryData} options={{ responsive: true }} />
+          <Line data={ratingHistoryData} options={lineBarOptions} />
         </div>
-
-        <div className="chart-container">
+        <div className="chart-container chart-wide">
           <h2>Solved Questions by Rating</h2>
-          <Bar data={solvedByRatingData} options={{ responsive: true }} />
+          <Bar data={solvedByRatingData} options={lineBarOptions} />
         </div>
-
-        <div className="chart-container">
+        <div className="chart-container chart-square">
           <h2>Topics Solved</h2>
-          <Pie data={topicsSolvedData} options={{ responsive: true }} />
+          <Pie data={topicsSolvedData} options={pieDoughnutOptions} />
         </div>
-
-        <div className="chart-container">
+        <div className="chart-container chart-square">
           <h2>Verdict Distribution</h2>
-          <Doughnut data={verdictsData} options={{ responsive: true }} />
+          <Doughnut data={verdictsData} options={{ ...pieDoughnutOptions, cutout: "70%" }} />
         </div>
       </div>
     </div>
