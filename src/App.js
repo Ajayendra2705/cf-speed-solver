@@ -4,6 +4,7 @@ import HomePage from './components/HomePage/HomePage';
 import SolvePage from './components/SolvePage/SolvePage';
 import ProfilePage from './components/ProfilePage/ProfilePage';
 import { HandleProvider } from './context/HandleContext'; // Import HandleProvider
+import RatingResultPage from './components/RatingResultPage/RatingResultPage';
 import './App.css';
 
 function App() {
@@ -17,15 +18,18 @@ function App() {
               <Link to="/">Home</Link>
               <Link to="/solve">Solve</Link>
               <Link to="/profile">Profile</Link>
+              <Link to="/result">Result</Link>
             </div>
           </nav>
 
           <div className="page-content">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/solve" element={<SolvePage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-            </Routes>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/solve" element={<SolvePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/result" element={<RatingResultPage />} />
+          </Routes>
+
           </div>
 
           <footer className="footer">
