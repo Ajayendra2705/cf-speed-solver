@@ -3,7 +3,9 @@ import './SolvePage.css';
 
 const SolvePage = () => {
   const [questions, setQuestions] = useState([]);
+  const [allTags, setAllTags] = useState([]);
   const [selectedRatings, setSelectedRatings] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [sortBySolvedCount, setSortBySolvedCount] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -11,8 +13,7 @@ const SolvePage = () => {
   const [loadingSubmissions, setLoadingSubmissions] = useState(true);
   const [error, setError] = useState(null);
 
-  // Retrieve the handle from localStorage
-  const handle = localStorage.getItem("cfHandle"); // Get the handle from localStorage
+  const handle = localStorage.getItem("cfHandle");
 
   useEffect(() => {
     if (handle) {
@@ -35,10 +36,16 @@ const SolvePage = () => {
               return {
                 ...problem,
                 solvedCount: stat ? stat.solvedCount : 0,
+                tags: problem.tags || []
               };
             });
 
             setQuestions(merged);
+
+            // Extract all unique tags
+            const tagsSet = new Set();
+            merged.forEach(q => (q.tags || []).forEach(tag => tagsSet.add(tag)));
+            setAllTags(Array.from(tagsSet).sort());
           } else {
             setError("Error fetching problemset.");
           }
@@ -90,9 +97,20 @@ const SolvePage = () => {
 
   const clearRatings = () => setSelectedRatings([]);
 
-  let filteredQuestions = questions.filter((problem) => {
+  const toggleTag = (tag) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const clearTags = () => setSelectedTags([]);
+
+  // Filtering logic
+  let filteredQuestions = questions.filter(problem => {
     if (!problem.rating) return false;
-    return selectedRatings.length === 0 || selectedRatings.includes(problem.rating);
+    const ratingMatch = selectedRatings.length === 0 || selectedRatings.includes(problem.rating);
+    const tagMatch = selectedTags.length === 0 || selectedTags.every(tag => problem.tags.includes(tag));
+    return ratingMatch && tagMatch;
   });
 
   if (sortBySolvedCount === "desc") {
@@ -106,23 +124,48 @@ const SolvePage = () => {
       {isLoggedIn ? (
         <>
           <h2 className="page-heading">Solve Problems</h2>
-          <p className="handle-info">Logged in as: <strong>{handle}</strong></p>
-
-          <div className="filter-buttons">
-            <button onClick={clearRatings} className="clear-button">Clear Filters</button>
-            <div className="rating-buttons">
-              {[...Array(28)].map((_, i) => {
-                const rating = 800 + i * 100;
-                return (
+          
+          <div className="filter-card">
+            <div className="handle-row">
+              <span className="handle-icon" title="Your Codeforces Handle">👤</span>
+              <span className="handle-info">
+                Logged in as: <strong>{handle}</strong>
+              </span>
+            </div>
+            <div className="filters-row">
+              <div className="filters-title">Filter by Rating</div>
+              <button onClick={clearRatings} className="clear-button">
+                Clear Rating Filters
+              </button>
+              <div className="rating-buttons">
+                {[...Array(28)].map((_, i) => {
+                  const rating = 800 + i * 100;
+                  return (
+                    <button
+                      key={rating}
+                      onClick={() => toggleRating(rating)}
+                      className={`rating-button ${selectedRatings.includes(rating) ? "selected" : ""}`}
+                    >
+                      {rating}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="filters-title" style={{marginTop: "1.2rem"}}>Filter by Topic</div>
+              <button onClick={clearTags} className="clear-button">
+                Clear Topic Filters
+              </button>
+              <div className="tag-filter-buttons">
+                {allTags.map(tag => (
                   <button
-                    key={rating}
-                    onClick={() => toggleRating(rating)}
-                    className={`rating-button ${selectedRatings.includes(rating) ? "selected" : ""}`}
+                    key={tag}
+                    className={`tag-filter-button ${selectedTags.includes(tag) ? "selected" : ""}`}
+                    onClick={() => toggleTag(tag)}
                   >
-                    {rating}
+                    {tag}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
           </div>
 
@@ -138,11 +181,12 @@ const SolvePage = () => {
                     <th>Name</th>
                     <th>Rating</th>
                     <th>Contest + Index</th>
+                    <th>Tags</th>
                     <th
                       onClick={() =>
                         setSortBySolvedCount((prev) => (prev === "desc" ? "asc" : "desc"))
                       }
-                      className="sortable-column"
+                      className="sortable-column solved-by-column"
                     >
                       Solved By {sortBySolvedCount === "desc" ? "🔽" : sortBySolvedCount === "asc" ? "🔼" : ""}
                     </th>
@@ -170,13 +214,27 @@ const SolvePage = () => {
                           </td>
                           <td>{problem.rating}</td>
                           <td>{problem.contestId}{problem.index}</td>
-                          <td>{problem.solvedCount}</td>
+                          <td>
+                            <div className="tag-badges">
+                              {problem.tags.length > 0
+                                ? problem.tags.map((tag, idx) => (
+                                    <span key={idx} className="tag-badge" title={tag}>
+                                      {tag}
+                                    </span>
+                                  ))
+                                : <span className="no-tags">-</span>
+                              }
+                            </div>
+                          </td>
+                          <td>{problem.solvedCount.toLocaleString()}</td>
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan="4" className="no-results">No problems found with selected filters.</td>
+                      <td colSpan="5" className="no-results">
+                        No problems found with selected filters.
+                      </td>
                     </tr>
                   )}
                 </tbody>
