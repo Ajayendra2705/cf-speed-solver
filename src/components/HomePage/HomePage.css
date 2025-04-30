@@ -1,0 +1,53 @@
+.homepage {
+  text-align: center;
+  padding: 20px;
+}
+
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.handle-input {
+  padding: 10px;
+  margin: 20px 0;
+  width: 80%;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+}
+
+.user-summary {
+  margin-top: 30px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  background: #f8f8f8;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-right: 20px;
+}
+
+.card .info {
+  text-align: left;
+}
+
+.success {
+  color: green;
+  font-size: 18px;
+  font-weight: bold;
+}
