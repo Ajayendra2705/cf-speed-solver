@@ -1,11 +1,21 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import HomePage from './components/HomePage/HomePage';
 import SolvePage from './components/SolvePage/SolvePage';
 import ProfilePage from './components/ProfilePage/ProfilePage';
-import { HandleProvider } from './context/HandleContext'; // Import HandleProvider
 import RatingResultPage from './components/RatingResultPage/RatingResultPage';
+import { HandleProvider } from './context/HandleContext';
 import './App.css';
+
+function NavLink({ to, children }) {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+  return (
+    <Link to={to} className={isActive ? "active" : ""}>
+      {children}
+    </Link>
+  );
+}
 
 function App() {
   return (
@@ -15,21 +25,20 @@ function App() {
           <nav className="navbar">
             <div className="navbar-brand">Codeforces Solver</div>
             <div className="navbar-links">
-              <Link to="/">Home</Link>
-              <Link to="/solve">Solve</Link>
-              <Link to="/profile">Profile</Link>
-              <Link to="/result">Result</Link>
+              <NavLink to="/">Home</NavLink>
+              <NavLink to="/solve">Solve</NavLink>
+              <NavLink to="/profile">Profile</NavLink>
+              <NavLink to="/result">Result</NavLink>
             </div>
           </nav>
 
           <div className="page-content">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/solve" element={<SolvePage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/result" element={<RatingResultPage />} />
-          </Routes>
-
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/solve" element={<SolvePage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/result" element={<RatingResultPage />} />
+            </Routes>
           </div>
 
           <footer className="footer">
