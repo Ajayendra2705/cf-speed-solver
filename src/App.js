@@ -28,7 +28,7 @@ function App() {
               <NavLink to="/">Home</NavLink>
               <NavLink to="/solve">Solve</NavLink>
               <NavLink to="/profile">Profile</NavLink>
-              <NavLink to="/result">Result</NavLink>
+              <NavLink to="/result">Analyzer</NavLink>
             </div>
           </nav>
 
