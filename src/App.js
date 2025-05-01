@@ -23,7 +23,7 @@ function App() {
       <Router>
         <div>
           <nav className="navbar">
-            <div className="navbar-brand">Codeforces Solver</div>
+            <div className="navbar-brand">Codeforces Analyzer</div>
             <div className="navbar-links">
               <NavLink to="/">Home</NavLink>
               <NavLink to="/solve">Solve</NavLink>
