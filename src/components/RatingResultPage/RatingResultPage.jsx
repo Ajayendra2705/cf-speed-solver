@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
 import { estimateRating } from '../../utils/estimateRating';
 import './RatingResultPage.css';
 
@@ -96,6 +97,27 @@ const RatingResultPage = () => {
 
   // Read handle from localStorage
   const handle = localStorage.getItem('cfHandle') || '';
+
+  // Use handle-specific key for solvedHistory
+  const solvedHistoryKey = `cf_solvedHistory_${handle}`;
+
+  // Chart state with per-user persistence
+  const [solvedHistory, setSolvedHistory] = useState(() => {
+    const stored = localStorage.getItem(solvedHistoryKey);
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  // Save solvedHistory to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(solvedHistoryKey, JSON.stringify(solvedHistory));
+  }, [solvedHistory, solvedHistoryKey]);
+
+  // When handle changes, load that user's history
+  useEffect(() => {
+    const stored = localStorage.getItem(solvedHistoryKey);
+    setSolvedHistory(stored ? JSON.parse(stored) : []);
+    // eslint-disable-next-line
+  }, [handle]);
 
   // Fetch user info once
   useEffect(() => {
@@ -286,6 +308,62 @@ const RatingResultPage = () => {
   // Wrong submissions (verdict !== OK)
   const wrongSubs = allSubs.filter(sub => sub.verdict !== 'OK');
 
+  // Add to solvedHistory whenever a question is solved
+  useEffect(() => {
+    if (
+      submissionTime !== null &&
+      problemDetails?.rating &&
+      estimatedRating !== null
+    ) {
+      setSolvedHistory(prev => [
+        ...prev,
+        {
+          original: problemDetails.rating,
+          estimated: estimatedRating,
+        }
+      ]);
+    }
+    // eslint-disable-next-line
+  }, [submissionTime]);
+
+  // Chart data
+  const chartData = {
+    labels: solvedHistory.map((_, idx) => `Q${idx + 1}`),
+    datasets: [
+      {
+        label: 'Original Rating',
+        data: solvedHistory.map(q => q.original),
+        borderColor: '#FF6B6B',
+        backgroundColor: '#FF6B6B33',
+        tension: 0.3,
+        pointRadius: 5,
+      },
+      {
+        label: 'Solved As',
+        data: solvedHistory.map(q => q.estimated),
+        borderColor: '#4ECDC4',
+        backgroundColor: '#4ECDC433',
+        tension: 0.3,
+        pointRadius: 5,
+      }
+    ]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' }
+    },
+    scales: {
+      x: { title: { display: true, text: 'Number of Questions Solved' } },
+      y: { 
+        title: { display: true, text: 'Rating' },
+        suggestedMin: Math.min(...solvedHistory.flatMap(q => [q.original, q.estimated]), 800) - 100,
+        suggestedMax: Math.max(...solvedHistory.flatMap(q => [q.original, q.estimated]), 1200) + 100
+      }
+    }
+  };
+
   return (
     <div className="result-container">
       <h1 className="title">Codeforces Performance Analyzer</h1>
@@ -420,6 +498,14 @@ const RatingResultPage = () => {
           <p>In Contest: {isContest ? 'Yes' : 'No'}</p>
           <p>Your Rating: {userRating}</p>
           <p>Problem vs Your Rating: {problemDetails?.rating && userRating ? (problemDetails.rating - userRating) : 'N/A'}</p>
+        </div>
+      )}
+
+      {/* --- CHART --- */}
+      {solvedHistory.length > 0 && (
+        <div className="chart-container" style={{ marginTop: 32, marginBottom: 32 }}>
+          <h3>Progress Chart</h3>
+          <Line data={chartData} options={chartOptions} height={350} />
         </div>
       )}
     </div>
